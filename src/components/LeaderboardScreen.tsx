@@ -107,12 +107,12 @@ export function LeaderboardScreen({ user, onBack }: LeaderboardScreenProps) {
   return (
     <div className="min-h-screen flex flex-col bg-[#050505]">
       {/* Animated gradient accent */}
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
         }}
-        transition={{ 
-          duration: 5, 
+        transition={{
+          duration: 5,
           repeat: Infinity,
           ease: "linear"
         }}
@@ -324,7 +324,7 @@ export function LeaderboardScreen({ user, onBack }: LeaderboardScreenProps) {
                           <p className={`font-bold ${
                             isCurrentUser ? 'text-[#FFD700]' : 'text-[#8A4FFF]'
                           }`}>
-                            {u.total_xp.toLocaleString()}
+                            {(u.total_xp || 0).toLocaleString()}
                           </p>
                           <p className={`text-xs ${
                             isCurrentUser ? 'text-[#F6F2EE]' : 'text-[#A0A0A0]'
@@ -372,7 +372,7 @@ function PodiumCard({ user, position }: { user: LeaderboardUser; position: numbe
       style={{ boxShadow: '4px 4px 0px rgba(0, 0, 0, 0.8)' }}
     >
       {/* Position badge */}
-      <div 
+      <div
         className="absolute -top-3 -right-3 w-10 h-10 border-3 border-[#F6F2EE] flex items-center justify-center"
         style={{ backgroundColor: color.bg }}
       >
@@ -381,7 +381,7 @@ function PodiumCard({ user, position }: { user: LeaderboardUser; position: numbe
 
       {/* Avatar */}
       <div className="flex flex-col items-center mb-2">
-        <div 
+        <div
           className="w-14 h-14 border-3 border-[#F6F2EE] flex items-center justify-center mb-2"
           style={{ backgroundColor: color.bg }}
         >
@@ -398,7 +398,7 @@ function PodiumCard({ user, position }: { user: LeaderboardUser; position: numbe
       <div className="space-y-1">
         <div className="flex items-center justify-between text-xs">
           <span className="text-[#A0A0A0]">XP</span>
-          <span className="text-[#8A4FFF] font-bold">{user.total_xp.toLocaleString()}</span>
+          <span className="text-[#8A4FFF] font-bold">{(user?.total_xp || 0).toLocaleString()}</span>
         </div>
         <div className="flex items-center justify-between text-xs">
           <span className="text-[#A0A0A0]">Live</span>
