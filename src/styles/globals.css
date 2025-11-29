@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+@layer base {
+  /* Neo-Brutalist Nightlife Theme for Patron Pass Street Team */
+  
+  :root {
+    /* Patron Pass Brand Colors */
+    --patron-purple: #8A4FFF;
+    --patron-coral: #FF7A59;
+    --pitch-black: #050505;
+    --deep-charcoal: #151515;
+    --ivory-smoke: #F6F2EE;
+    
+    /* Semantic Colors */
+    --background: var(--pitch-black);
+    --foreground: var(--ivory-smoke);
+    --card: var(--deep-charcoal);
+    --card-foreground: var(--ivory-smoke);
+    --primary: var(--patron-purple);
+    --primary-foreground: var(--ivory-smoke);
+    --secondary: var(--patron-coral);
+    --secondary-foreground: var(--ivory-smoke);
+    --muted: #2A2A2A;
+    --muted-foreground: #A0A0A0;
+    --accent: var(--patron-coral);
+    --accent-foreground: var(--ivory-smoke);
+    --destructive: #FF4444;
+    --destructive-foreground: var(--ivory-smoke);
+    --border: var(--ivory-smoke);
+    --input: var(--deep-charcoal);
+    --ring: var(--patron-purple);
+    --radius: 0rem;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Typography - Strong Sans-Serif */
+  h1 {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  h3 {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  h4 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  p {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  small {
+    font-size: 14px;
+  }
+
+  /* Grain texture overlay */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.02) 2px,
+        rgba(255, 255, 255, 0.02) 4px
+      );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.3;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--deep-charcoal);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--patron-purple);
+    border: 2px solid var(--deep-charcoal);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--patron-coral);
+  }
+
+  /* Selection */
+  ::selection {
+    background: var(--patron-purple);
+    color: var(--ivory-smoke);
+  }
+
+  /* Focus styles */
+  *:focus-visible {
+    outline: 3px solid var(--patron-purple);
+    outline-offset: 2px;
+  }
+}
+
+/* Utility classes for brutalist effects */
+.grain-texture {
+  position: relative;
+  overflow: hidden;
+}
+
+.grain-texture::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.brutalist-border {
+  border: 3px solid;
+  border-color: var(--border);
+}
+
+.brutalist-border-thick {
+  border: 4px solid;
+  border-color: var(--border);
+}
+
+.brutalist-shadow {
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.8);
+}
+
+.brutalist-shadow-lg {
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.8);
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes confetti {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.2s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s ease-in-out infinite;
+}

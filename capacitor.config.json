@@ -1,0 +1,14 @@
+{
+  "appId": "com.patronpass.streetteam",
+  "appName": "Patron Pass Street Team",
+  "webDir": "build",
+  "server": {
+    "iosScheme": "capacitor",
+    "hostname": "localhost"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
