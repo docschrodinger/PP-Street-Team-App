@@ -21,7 +21,7 @@ import { AddLeadForm } from './components/AddLeadForm';
 import { LeadDetailsScreen } from './components/LeadDetailsScreen';
 import { MissionsScreen } from './components/MissionsScreen';
 import { LeaderboardScreen } from './components/LeaderboardScreen';
-import { RankSystemScreen } from './components/RankSystemScreen';
+import { LeaderboardScreen as RankSystemScreen } from './components/RankSystemScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { NotificationsScreen } from './components/NotificationsScreen';
 import { EarningsScreen } from './components/EarningsScreen';
@@ -54,7 +54,7 @@ type Screen =
   | 'hq-admin';
 
 export default function App() {
-  const { user, streetUser, loading, needsContract, needsOnboarding, signIn, signOut, markOnboardingComplete } = useAuth();
+  const { user, streetUser, loading, error, needsContract, needsOnboarding, signIn, signOut, markOnboardingComplete } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<Screen>('welcome');
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
@@ -234,11 +234,23 @@ export default function App() {
   if (!initialized || loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center px-6">
           <div className="inline-block border-4 border-[#F6F2EE] p-8 mb-4 bg-[#151515] animate-pulse">
             <h1 className="text-5xl font-black text-[#8A4FFF] tracking-tight">PP</h1>
           </div>
-          <p className="text-[#A0A0A0] uppercase tracking-widest text-sm">Loading...</p>
+          <p className="text-[#A0A0A0] uppercase tracking-widest text-sm mb-4">Loading...</p>
+          {error && (
+            <div className="mt-4 p-4 bg-[#FF4444] border-3 border-[#F6F2EE] text-[#F6F2EE] max-w-md mx-auto">
+              <p className="text-sm font-bold mb-2">Error</p>
+              <p className="text-xs">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-3 px-4 py-2 bg-[#F6F2EE] text-[#050505] text-xs uppercase font-bold"
+              >
+                Retry
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '../utils/supabase/client';
 import { calculateStreak } from '../lib/streakService';
-import { getCommissionRate } from '../lib/xpService';
+import { getCommissionRateByRank } from '../lib/xpService';
 import type { StreetUser } from '../hooks/useAuth';
 import { motion } from 'motion/react';
 
@@ -128,7 +128,7 @@ export function Dashboard({ user, onNavigate }: DashboardProps) {
       ]);
 
       // Calculate estimated earnings
-      const commissionRate = getCommissionRate(user.current_rank);
+      const commissionRate = getCommissionRateByRank(user.current_rank);
       const ESTIMATED_MONTHLY_PLATFORM_FEE_PER_VENUE = 150;
       const estimatedMonthlyEarnings = (liveVenues.data?.length || 0) * ESTIMATED_MONTHLY_PLATFORM_FEE_PER_VENUE * commissionRate;
 

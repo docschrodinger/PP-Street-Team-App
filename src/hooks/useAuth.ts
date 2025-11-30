@@ -21,6 +21,7 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [streetUser, setStreetUser] = useState<StreetUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [needsContract, setNeedsContract] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
@@ -28,14 +29,21 @@ export function useAuth() {
     const supabase = createClient();
 
     // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    console.log('useAuth: Checking initial session...');
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('useAuth: Session check result:', { session: !!session, error });
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('useAuth: User found, loading street user data...');
         loadStreetUser(session.user.id);
       } else {
+        console.log('useAuth: No active session, stopping loading');
         setLoading(false);
       }
+    }).catch(err => {
+      console.error('useAuth: Failed to get session:', err);
+      setLoading(false);
     });
 
     // Listen for auth changes
@@ -58,58 +66,102 @@ export function useAuth() {
   async function loadStreetUser(userId: string) {
     const supabase = createClient();
     
-    console.log('Loading street user for ID:', userId);
-    const { data: streetUserData, error: userError } = await supabase
-      .from('street_users')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    // Add 10-second timeout to prevent infinite loading
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database query timeout')), 10000)
+    );
 
-    console.log('Street user query result:', { streetUserData, userError });
-
-    if (userError) {
-      console.error('Error loading street user:', {
-        message: userError.message,
-        details: userError.details,
-        hint: userError.hint,
-        code: userError.code,
-        fullError: userError
-      });
-      setLoading(false);
-      return;
-    }
-
-    if (streetUserData) {
-      setStreetUser(streetUserData as StreetUser);
-
-      // Check if user needs to sign contract
-      const { data: contractData, error: contractError } = await supabase
-        .from('street_contract_acceptances')
+    try {
+      console.log('Loading street user for ID:', userId);
+      
+      const queryPromise = supabase
+        .from('street_users')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
 
-      console.log('Contract query result:', { contractData, contractError });
+      const result = await Promise.race([queryPromise, timeoutPromise]);
+      const { data: streetUserData, error: userError } = result as any;
 
-      setNeedsContract(!contractData && streetUserData.status === 'pending');
-      
-      // Check if user has seen onboarding
-      const hasSeenOnboarding = localStorage.getItem(`onboarding_seen_${userId}`);
-      setNeedsOnboarding(!hasSeenOnboarding && !contractData);
+      console.log('Street user query result:', { streetUserData, userError });
+
+      if (userError) {
+        console.error('Error loading street user:', {
+          message: userError.message,
+          details: userError.details,
+          hint: userError.hint,
+          code: userError.code,
+          fullError: userError
+        });
+        setError(`Failed to load profile: ${userError.message}`);
+        setLoading(false);
+        return;
+      }
+
+      if (streetUserData) {
+        setStreetUser(streetUserData as StreetUser);
+
+        // Check if user needs to sign contract
+        try {
+          const contractQueryPromise = supabase
+            .from('street_contract_acceptances')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+          const contractResult = await Promise.race([contractQueryPromise, timeoutPromise]);
+          const { data: contractData, error: contractError } = contractResult as any;
+
+          console.log('Contract query result:', { contractData, contractError });
+
+          setNeedsContract(!contractData && streetUserData.status === 'pending');
+          
+          // Check if user has seen onboarding
+          const hasSeenOnboarding = localStorage.getItem(`onboarding_seen_${userId}`);
+          setNeedsOnboarding(!hasSeenOnboarding && !contractData);
+        } catch (contractError) {
+          console.error('Contract query timeout or error:', contractError);
+          // Default to no contract needed if query fails
+          setNeedsContract(false);
+          setNeedsOnboarding(false);
+        }
+      }
+    } catch (error: any) {
+      console.error('Timeout or error loading street user:', error);
+      setError(error?.message || 'Failed to load user data');
+    } finally {
+      // CRITICAL: Always stop loading, even on error
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   const signIn = async (email: string, password: string) => {
     const supabase = createClient();
     console.log('Calling Supabase signInWithPassword...');
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    console.log('Supabase auth response - data:', data, 'error:', error);
-    return { data, error };
+    
+    // Add 15-second timeout to prevent hanging on network failure
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Network request timeout - please check your connection')), 15000)
+    );
+    
+    try {
+      const authPromise = supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      const result = await Promise.race([authPromise, timeoutPromise]);
+      const { data, error } = result as any;
+      
+      console.log('Supabase auth response - data:', data, 'error:', error);
+      return { data, error };
+    } catch (timeoutError: any) {
+      console.error('Auth timeout or network error:', timeoutError);
+      return { 
+        data: { user: null, session: null }, 
+        error: { message: timeoutError.message || 'Connection timeout' }
+      };
+    }
   };
 
   const signOut = async () => {
@@ -130,6 +182,7 @@ export function useAuth() {
     user,
     streetUser,
     loading,
+    error,
     needsContract,
     needsOnboarding,
     signIn,

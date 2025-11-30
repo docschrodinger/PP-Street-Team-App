@@ -4,25 +4,44 @@ import { projectId, publicAnonKey } from './info';
 /**
  * Supabase Client Configuration
  * 
- * This client is configured to use Capacitor's native HTTP plugin on mobile devices
- * via the `plugins. CapacitorHttp. enabled = true` setting in capacitor.config.json. 
- * 
- * Tables managed by this client:
- * - street_users: User profiles (ambassadors, captains, HQ admins)
- * - street_applications: Incoming applications
- * - street_contract_acceptances: Signed agreements
- * - street_runs: Active street team runs/sessions
- * - street_venue_leads: Venue/business leads
- * - street_venue_photos: Venue visit photos
- * - street_missions: Gamified missions/challenges
- * - street_mission_progress: User mission progress
- * - street_xp_events: XP gain audit log
- * - street_ranks: Rank tiers and thresholds
- * - street_notifications: In-app notifications
- * - street_account_deletion_requests: GDPR account deletion
+ * Custom fetch wrapper for debugging network issues
  */
 
 let supabaseClient: ReturnType<typeof createSupabaseClient> | null = null;
+
+// Custom fetch with detailed logging
+const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  console.log('🌐 Supabase fetch START:', input);
+
+  try {
+    // Test basic fetch first
+    console.log('🧪 Testing basic fetch to google.com...');
+    try {
+      const testResponse = await fetch('https://www.google.com', { method: 'HEAD' });
+      console.log('✅ Google fetch works:', testResponse.status);
+    } catch (testError) {
+      console.error('❌ Google fetch FAILED:', testError);
+      console.error('❌ This means the simulator has NO network access');
+    }
+    
+    const response = await fetch(input, init);
+    console.log('✅ Supabase fetch SUCCESS:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      const errorBody = await response.clone().text();
+      console.error('❌ Supabase response error body:', errorBody);
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('💥 Supabase fetch EXCEPTION:', error);
+    console.error('💥 Error type:', typeof error);
+    console.error('💥 Error constructor:', error?.constructor?.name);
+    console.error('💥 Error message:', (error as any)?.message);
+    console.error('💥 Error stack:', (error as any)?.stack);
+    throw error;
+  }
+};
 
 export function createClient() {
   if (supabaseClient) {
@@ -30,13 +49,26 @@ export function createClient() {
   }
 
   const supabaseUrl = `https://${projectId}.supabase.co`;
+  
+  console.log('🔧 Creating Supabase client:', supabaseUrl);
+  console.log('🔧 localStorage available:', typeof window !== 'undefined' && !!window.localStorage);
+  
   supabaseClient = createSupabaseClient(supabaseUrl, publicAnonKey, {
     auth: {
+      storage: window.localStorage,
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: true,
+      detectSessionInUrl: false,
+    },
+    global: {
+      fetch: customFetch,
+      headers: {
+        'X-Client-Info': 'patron-pass-capacitor-ios',
+      },
     },
   });
+  
+  console.log('✅ Supabase client created');
   
   return supabaseClient;
 }

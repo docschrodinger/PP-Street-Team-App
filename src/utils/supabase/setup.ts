@@ -3,18 +3,32 @@ import { createClient } from './client';
 export async function initializeDatabase() {
   const supabase = createClient();
 
+  // Add 5-second timeout to prevent hanging on network issues
+  const timeout = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Database initialization timeout')), 5000)
+  );
+
   // Check if tables exist by trying to query them
   try {
-    await supabase.from('street_ranks').select('*').limit(1);
+    console.log('🔄 Checking database tables...');
+    await Promise.race([
+      supabase.from('street_ranks').select('*').limit(1),
+      timeout
+    ]);
+    console.log('✅ Database tables accessible');
   } catch (error) {
-    console.log('Database tables may not exist yet. They should be created via Supabase dashboard.');
+    console.log('⚠️ Database tables may not exist or network unavailable. Skipping seed.');
     return;
   }
 
   // Seed initial ranks if they don't exist
-  const { data: existingRanks } = await supabase.from('street_ranks').select('*');
-  
-  if (!existingRanks || existingRanks.length === 0) {
+  try {
+    const { data: existingRanks } = await Promise.race([
+      supabase.from('street_ranks').select('*'),
+      timeout
+    ]) as any;
+    
+    if (!existingRanks || existingRanks.length === 0) {
     const ranks = [
       {
         name: 'Bronze',
@@ -58,9 +72,16 @@ export async function initializeDatabase() {
       await supabase.from('street_ranks').insert(rank);
     }
   }
+  } catch (error) {
+    console.log('⚠️ Failed to seed ranks:', error);
+  }
 
   // Seed initial global missions
-  const { data: existingMissions } = await supabase.from('street_missions').select('*');
+  try {
+    const { data: existingMissions } = await Promise.race([
+      supabase.from('street_missions').select('*'),
+      timeout
+    ]) as any;
   
   if (!existingMissions || existingMissions.length === 0) {
     const today = new Date().toISOString();
@@ -111,6 +132,9 @@ export async function initializeDatabase() {
     for (const mission of missions) {
       await supabase.from('street_missions').insert(mission);
     }
+  }
+  } catch (error) {
+    console.log('⚠️ Failed to seed missions:', error);
   }
 }
 
